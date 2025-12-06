@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 900px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .full-width { grid-column: span 2; }
+        h2 { margin-top: 0; color: #333; }
+        .status-box { padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 20px; font-size: 1.2em;}
+        .safe { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
+        input { padding: 10px; width: 60%; border: 1px solid #ccc; border-radius: 5px; margin-right: 10px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        
+        #logs { height: 200px; overflow-y: scroll; background: #222; color: #0f0; padding: 10px; font-family: monospace; border-radius: 5px; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #444; padding-bottom: 2px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card full-width">
+        <h1>📦 Autonomous Supply Chain Monitor</h1>
+        <p>System Connection: <span id="connectionStatus" style="color:red; font-weight:bold;">Connecting...</span></p>
+    </div>
+
+    <div class="card">
+        <h2>🌡️ IoT Sensor Control</h2>
+        <div id="statusDisplay" class="status-box safe">Shipment Status: SECURE</div>
+        <input type="number" id="tempInput" placeholder="Enter Temp (e.g., 12)" />
+        <button onclick="reportTemp()">Report Data</button>
+        <p style="font-size: 0.8em; color: gray; margin-top: 10px;">*Threshold is 10°C.</p>
+    </div>
+
+    <div class="card">
+        <h2>📡 Live Blockchain Events</h2>
+        <div id="logs"></div>
+    </div>
+</div>
+
+<script>
+    // --- STEP 1: PASTE YOUR CONTRACT ADDRESS HERE ---
+    const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; 
+    // ------------------------------------------------
+
+    const ABI = [
+        "function reportTemperature(uint _temp) public",
+        "function isShipmentCompromised() public view returns (bool)",
+        "event TemperatureReading(uint indexed temp, string message)",
+        "event EmergencyActionTriggered(string action, uint timestamp)"
+    ];
+
+    let provider, signer, contract;
+
+    async function init() {
+        try {
+            // Direct connection to local Hardhat node (No MetaMask needed)
+            provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
+            
+            // Get the first account from the node to sign transactions
+            signer = await provider.getSigner();
+            
+            contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+            
+            document.getElementById("connectionStatus").innerText = "Connected to Local Node (Direct)";
+            document.getElementById("connectionStatus").style.color = "green";
+
+            // Listen for Events
+            contract.on("TemperatureReading", (temp, msg) => {
+                addLog(`[SENSOR] Temp: ${temp}°C | ${msg}`);
+            });
+
+            contract.on("EmergencyActionTriggered", (action, time) => {
+                addLog(`🚨 [AUTONOMOUS ACTION] ${action}`);
+                updateStatus(true);
+            });
+
+            // Check initial status
+            const isCompromised = await contract.isShipmentCompromised();
+            if(isCompromised) updateStatus(true);
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById("connectionStatus").innerText = "Error: Is Hardhat Node running?";
+            addLog("Connection Failed. Make sure 'npx hardhat node' is running in Terminal 1.");
+        }
+    }
+
+    async function reportTemp() {
+        const temp = document.getElementById("tempInput").value;
+        if (!temp) return alert("Enter a temperature");
+        
+        try {
+            addLog(`Sending Transaction: Report ${temp}°C...`);
+            const tx = await contract.reportTemperature(temp);
+            await tx.wait(); // Wait for block confirmation
+            addLog("✅ Transaction Confirmed.");
+        } catch (err) {
+            console.error(err);
+            addLog("Error: " + err.message);
+        }
+    }
+
+    function updateStatus(isCompromised) {
+        const display = document.getElementById("statusDisplay");
+        if (isCompromised) {
+            display.className = "status-box danger";
+            display.innerText = "Shipment Status: REJECTED";
+        } else {
+            display.className = "status-box safe";
+            display.innerText = "Shipment Status: SECURE";
+        }
+    }
+
+    function addLog(message) {
+        const logDiv = document.getElementById("logs");
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+        entry.innerText = `> ${message}`;
+        logDiv.prepend(entry);
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
