@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supply Chain Monitor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <script src="env.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
         .container { width: 900px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -46,10 +47,6 @@
 </div>
 
 <script>
-    // --- STEP 1: PASTE YOUR CONTRACT ADDRESS HERE ---
-    const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; 
-    // ------------------------------------------------
-
     const ABI = [
         "function reportTemperature(uint _temp) public",
         "function isShipmentCompromised() public view returns (bool)",
@@ -61,6 +58,7 @@
 
     async function init() {
         try {
+            const CONTRACT_ADDRESS = window.CONTRACT_ADDRESS;
             // Direct connection to local Hardhat node (No MetaMask needed)
             provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
             

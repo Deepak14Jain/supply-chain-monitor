@@ -1,14 +1,29 @@
 const hre = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   const monitor = await hre.ethers.deployContract("SupplyChainMonitor");
   await monitor.waitForDeployment();
+  const address = monitor.target;
 
   console.log("------------------------------------------------");
-  console.log("✅ Contract Deployed Successfully!");
-  console.log("Address:", monitor.target);
+  console.log("✅ Contract Deployed at:", address);
   console.log("------------------------------------------------");
-  console.log("PLEASE COPY THIS ADDRESS for the next steps.");
+
+  // --- AUTO-UPDATE CONFIGURATION ---
+  
+  // 1. Save for the Backend Listener (JSON)
+  fs.writeFileSync(
+    path.join(__dirname, "../contract_address.json"),
+    JSON.stringify({ address: address }, null, 2)
+  );
+
+  // 2. Save for the Frontend UI (JS)
+  fs.writeFileSync(
+    path.join(__dirname, "../env.js"),
+    `window.CONTRACT_ADDRESS = "${address}";`
+  );
 }
 
 main().catch((error) => {

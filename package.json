@@ -4,13 +4,21 @@
   "description": "Implements an off-chain listener using Hardhat &amp; Ethers.js that autonomously triggers contract state changes based on IoT sensor events.",
   "scripts": {
     "test": "npx hardhat test",
-    "simulate": "npx hardhat run scripts/simulate_system.js"
+    "simulate": "npx hardhat run scripts/simulate_system.js",
+
+    "node": "npx hardhat node --hostname 0.0.0.0 | grep -v 'eth_blockNumber'",
+    "deploy": "npx hardhat run scripts/deploy.js --network localhost",
+    "listener": "npx hardhat run scripts/listener_service.js --network localhost",
+    "ui": "npx http-server . -p 8080 -c-1",
+    
+    "start": "concurrently -k \"npm run node\" \"sleep 3 && npm run deploy && npm run listener\" \"sleep 5 && npm run ui\""
   },
   "keywords": [],
   "author": "Deepak Jain",
   "license": "ISC",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "concurrently": "^9.2.1",
     "hardhat": "^2.26.0"
   }
 }

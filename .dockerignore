@@ -3,3 +3,5 @@ artifacts
 cache
 contract_address.json
 env.js
+.git
+.gitignore

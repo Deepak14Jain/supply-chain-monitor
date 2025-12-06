@@ -1,17 +1,15 @@
 const hre = require("hardhat");
-
-// PASTE THE DEPLOYED ADDRESS HERE FROM STEP 1
-const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; 
+// LOAD ADDRESS AUTOMATICALLY
+const { address } = require("../contract_address.json");
 
 async function main() {
-  // Connect to the deployed contract
-  const monitor = await hre.ethers.getContractAt("SupplyChainMonitor", CONTRACT_ADDRESS);
+  // Use the auto-loaded address
+  const monitor = await hre.ethers.getContractAt("SupplyChainMonitor", address);
 
   console.log("🎧 LISTENER SERVICE STARTED...");
-  console.log(`Watching contract at: ${CONTRACT_ADDRESS}`);
+  console.log(`Watching contract at: ${address}`); // Confirming the address
   console.log("Waiting for 'TemperatureReading' events...\n");
 
-  // The Event Listener Logic
   monitor.on("TemperatureReading", async (temp, message) => {
     console.log(`[EVENT RECEIVED] Temp: ${temp}°C | Msg: ${message}`);
 
@@ -29,7 +27,7 @@ async function main() {
     }
   });
   
-  // Keep the script running
+  // Keep running
   await new Promise(() => {});
 }
 
