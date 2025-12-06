@@ -1,0 +1,16 @@
+{
+  "name": "supply-chain-monitor",
+  "version": "1.0.0",
+  "description": "Implements an off-chain listener using Hardhat &amp; Ethers.js that autonomously triggers contract state changes based on IoT sensor events.",
+  "scripts": {
+    "test": "npx hardhat test",
+    "simulate": "npx hardhat run scripts/simulate_system.js"
+  },
+  "keywords": [],
+  "author": "Deepak Jain",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "hardhat": "^2.26.0"
+  }
+}
